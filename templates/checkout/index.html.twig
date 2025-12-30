@@ -1,0 +1,137 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Checkout{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+        }
+        .form-control:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .form-error {
+            color: #e74c3c;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+        .payment-info {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            border-radius: 4px;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <h1>🛒 Checkout</h1>
+
+    {% for message in app.flashes('error') %}
+        <div style="padding: 1rem; background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 4px; margin-bottom: 1rem;">
+            {{ message }}
+        </div>
+    {% endfor %}
+
+    <div class="payment-info">
+        <strong>💳 Secure Payment with Stripe</strong>
+        <p style="margin: 0.5rem 0 0 0; font-size: 0.9rem;">
+            After submitting your information, you'll be redirected to Stripe's secure payment page.
+            <br><strong>Test card:</strong> 4242 4242 4242 4242 | Exp: Any future date | CVC: Any 3 digits
+        </p>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; margin-top: 2rem;">
+        {# Left: Checkout Form #}
+        <div>
+            <h2>Shipping Information</h2>
+            
+            {{ form_start(form) }}
+                <div class="form-group">
+                    {{ form_label(form.name) }}
+                    {{ form_widget(form.name) }}
+                    {{ form_errors(form.name) }}
+                </div>
+
+                <div class="form-group">
+                    {{ form_label(form.email) }}
+                    {{ form_widget(form.email) }}
+                    {{ form_errors(form.email) }}
+                </div>
+
+                <div class="form-group">
+                    {{ form_label(form.phone) }}
+                    {{ form_widget(form.phone) }}
+                    {{ form_errors(form.phone) }}
+                </div>
+
+                <div class="form-group">
+                    {{ form_label(form.address) }}
+                    {{ form_widget(form.address) }}
+                    {{ form_errors(form.address) }}
+                </div>
+
+                <button type="submit" class="btn btn-success" style="width: 100%; padding: 1rem; font-size: 1.1rem;">
+                    Continue to Payment →
+                </button>
+            {{ form_end(form) }}
+        </div>
+
+        {# Right: Order Summary #}
+        <div>
+            <h2>Order Summary</h2>
+            
+            <div style="border: 1px solid #ddd; border-radius: 8px; padding: 1.5rem; background: #f8f9fa;">
+                {% for item in cartItems %}
+                    <div style="display: flex; justify-content: space-between; padding: 1rem 0; border-bottom: 1px solid #ddd;">
+                        <div style="flex: 1;">
+                            <strong>{{ item.product.name }}</strong>
+                            <p style="color: #7f8c8d; margin: 0.25rem 0 0 0; font-size: 0.9rem;">
+                                Qty: {{ item.quantity }} × ${{ item.product.price }}
+                            </p>
+                        </div>
+                        <div style="font-weight: bold;">
+                            ${{ (item.product.price * item.quantity)|number_format(2) }}
+                        </div>
+                    </div>
+                {% endfor %}
+
+                <div style="padding-top: 1rem; margin-top: 1rem;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <span>Subtotal:</span>
+                        <span>${{ total|number_format(2) }}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 1rem; color: #7f8c8d; font-size: 0.9rem;">
+                        <span>Shipping:</span>
+                        <span>FREE</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 1.3rem; font-weight: bold; padding-top: 1rem; border-top: 2px solid #2c3e50;">
+                        <span>Total:</span>
+                        <span style="color: #27ae60;">${{ total|number_format(2) }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <a href="{{ path('app_cart_index') }}" style="display: block; text-align: center; margin-top: 1rem; color: #3498db; text-decoration: none;">
+                ← Back to Cart
+            </a>
+        </div>
+    </div>
+{% endblock %}

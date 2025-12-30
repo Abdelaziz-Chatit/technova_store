@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\OrderRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: OrderRepository::class)]
@@ -16,33 +17,46 @@ class Order
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column]
-    private ?int $user_id = null;
+    #[ORM\ManyToOne(inversedBy: 'orders')]
+    private ?User $user = null;
 
-    #[ORM\Column]
-    private ?float $total = null;
+    // Customer Information (for guest checkout or shipping details)
+    #[ORM\Column(length: 255)]
+    private ?string $customerName = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $customerEmail = null;
+
+    #[ORM\Column(length: 50, nullable: true)]
+    private ?string $customerPhone = null;
+
+    #[ORM\Column(type: Types::TEXT)]
+    private ?string $shippingAddress = null;
+
+    // Order Details
+    #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
+    private ?string $totalAmount = null;
 
     #[ORM\Column(length: 50)]
     private ?string $status = null;
 
     #[ORM\Column]
-    private ?\DateTime $created_at = null;
-
-    #[ORM\ManyToOne(inversedBy: 'orders')]
-    private ?User $user = null;
+    private ?\DateTimeImmutable $createdAt = null;
 
     /**
      * @var Collection<int, OrderItem>
      */
-    #[ORM\OneToMany(targetEntity: OrderItem::class, mappedBy: 'orders')]
-    private Collection $orderItems;
+    #[ORM\OneToMany(targetEntity: OrderItem::class, mappedBy: 'order', cascade: ['persist', 'remove'])]
+    private Collection $items;
 
-    #[ORM\OneToOne(mappedBy: 'orders', cascade: ['persist', 'remove'])]
+    #[ORM\OneToOne(mappedBy: 'order', cascade: ['persist', 'remove'])]
     private ?Payment $payment = null;
 
     public function __construct()
     {
-        $this->orderItems = new ArrayCollection();
+        $this->items = new ArrayCollection();
+        $this->createdAt = new \DateTimeImmutable();
+        $this->status = 'pending';
     }
 
     public function getId(): ?int
@@ -50,34 +64,69 @@ class Order
         return $this->id;
     }
 
-    public function setId(int $id): static
+    public function getUser(): ?User
     {
-        $this->id = $id;
+        return $this->user;
+    }
 
+    public function setUser(?User $user): static
+    {
+        $this->user = $user;
         return $this;
     }
 
-    public function getUserId(): ?int
+    public function getCustomerName(): ?string
     {
-        return $this->user_id;
+        return $this->customerName;
     }
 
-    public function setUserId(int $user_id): static
+    public function setCustomerName(string $customerName): static
     {
-        $this->user_id = $user_id;
-
+        $this->customerName = $customerName;
         return $this;
     }
 
-    public function getTotal(): ?float
+    public function getCustomerEmail(): ?string
     {
-        return $this->total;
+        return $this->customerEmail;
     }
 
-    public function setTotal(float $total): static
+    public function setCustomerEmail(string $customerEmail): static
     {
-        $this->total = $total;
+        $this->customerEmail = $customerEmail;
+        return $this;
+    }
 
+    public function getCustomerPhone(): ?string
+    {
+        return $this->customerPhone;
+    }
+
+    public function setCustomerPhone(?string $customerPhone): static
+    {
+        $this->customerPhone = $customerPhone;
+        return $this;
+    }
+
+    public function getShippingAddress(): ?string
+    {
+        return $this->shippingAddress;
+    }
+
+    public function setShippingAddress(string $shippingAddress): static
+    {
+        $this->shippingAddress = $shippingAddress;
+        return $this;
+    }
+
+    public function getTotalAmount(): ?string
+    {
+        return $this->totalAmount;
+    }
+
+    public function setTotalAmount(string $totalAmount): static
+    {
+        $this->totalAmount = $totalAmount;
         return $this;
     }
 
@@ -89,62 +138,63 @@ class Order
     public function setStatus(string $status): static
     {
         $this->status = $status;
-
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTime
+    public function getCreatedAt(): ?\DateTimeImmutable
     {
-        return $this->created_at;
+        return $this->createdAt;
     }
 
-    public function setCreatedAt(\DateTime $created_at): static
+    public function setCreatedAt(\DateTimeImmutable $createdAt): static
     {
-        $this->created_at = $created_at;
-
-        return $this;
-    }
-
-    public function getUser(): ?User
-    {
-        return $this->user;
-    }
-
-    public function setUser(?User $user): static
-    {
-        $this->user = $user;
-
+        $this->createdAt = $createdAt;
         return $this;
     }
 
     /**
      * @return Collection<int, OrderItem>
      */
-    public function getOrderItems(): Collection
+    public function getItems(): Collection
     {
-        return $this->orderItems;
+        return $this->items;
     }
 
-    public function addOrderItem(OrderItem $orderItem): static
+    public function addItem(OrderItem $item): static
     {
-        if (!$this->orderItems->contains($orderItem)) {
-            $this->orderItems->add($orderItem);
-            $orderItem->setOrders($this);
+        if (!$this->items->contains($item)) {
+            $this->items->add($item);
+            $item->setOrder($this);
         }
 
         return $this;
     }
 
-    public function removeOrderItem(OrderItem $orderItem): static
+    public function removeItem(OrderItem $item): static
     {
-        if ($this->orderItems->removeElement($orderItem)) {
-            // set the owning side to null (unless already changed)
-            if ($orderItem->getOrders() === $this) {
-                $orderItem->setOrders(null);
+        if ($this->items->removeElement($item)) {
+            if ($item->getOrder() === $this) {
+                $item->setOrder(null);
             }
         }
 
         return $this;
+    }
+
+    // Keep backward compatibility with old method names
+    public function getOrderItems(): Collection
+    {
+        return $this->getItems();
+    }
+
+    public function addOrderItem(OrderItem $orderItem): static
+    {
+        return $this->addItem($orderItem);
+    }
+
+    public function removeOrderItem(OrderItem $orderItem): static
+    {
+        return $this->removeItem($orderItem);
     }
 
     public function getPayment(): ?Payment
@@ -156,16 +206,27 @@ class Order
     {
         // unset the owning side of the relation if necessary
         if ($payment === null && $this->payment !== null) {
-            $this->payment->setOrders(null);
+            $this->payment->setOrder(null);
         }
 
         // set the owning side of the relation if necessary
-        if ($payment !== null && $payment->getOrders() !== $this) {
-            $payment->setOrders($this);
+        if ($payment !== null && $payment->getOrder() !== $this) {
+            $payment->setOrder($this);
         }
 
         $this->payment = $payment;
+        return $this;
+    }
 
+    // Backward compatibility - keep getTotal() method
+    public function getTotal(): ?float
+    {
+        return $this->totalAmount ? (float) $this->totalAmount : null;
+    }
+
+    public function setTotal(float $total): static
+    {
+        $this->totalAmount = (string) $total;
         return $this;
     }
 }

@@ -1,0 +1,30 @@
+<div class="product-card">
+    {% if product.image %}
+        <img src="{{ product.image }}" alt="{{ product.name }}">
+    {% else %}
+        <div style="height: 200px; background: #ecf0f1; display: flex; align-items: center; justify-content: center;">
+            <span style="color: #95a5a6;">No image</span>
+        </div>
+    {% endif %}
+    
+    <div class="product-card-body">
+        <h3>{{ product.name }}</h3>
+        
+        {% if product.category %}
+            <p style="color: #7f8c8d; font-size: 0.9rem;">{{ product.category.name }}</p>
+        {% endif %}
+        
+        <p class="price">${{ product.price }}</p>
+        
+        <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+            <a href="{{ path('app_product_show', {id: product.id}) }}" style="flex: 1;">View Details →</a>
+            
+            <form method="post" action="{{ path('app_cart_add', {id: product.id}) }}" style="flex: 1;">
+                <input type="hidden" name="quantity" value="1">
+                <button type="submit" class="btn btn-success" style="width: 100%; padding: 0.5rem; font-size: 0.9rem;">
+                    + Cart
+                </button>
+            </form>
+        </div>
+    </div>
+</div>

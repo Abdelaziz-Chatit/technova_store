@@ -13,69 +13,55 @@ class OrderItem
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column]
-    private ?int $order_id = null;
+    #[ORM\ManyToOne(inversedBy: 'items')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Order $order = null;
 
-    #[ORM\Column]
-    private ?int $product_id = null;
-
-    #[ORM\Column]
-    private ?float $price = null;
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Product $product = null;
 
     #[ORM\Column]
     private ?int $quantity = null;
 
-    #[ORM\ManyToOne(inversedBy: 'orderItems')]
-    private ?Order $orders = null;
-
-    #[ORM\ManyToOne(inversedBy: 'orderItems')]
-    private ?Product $product = null;
+    #[ORM\Column]
+    private ?float $price = null;
 
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function setId(int $id): static
+    public function getOrder(): ?Order
     {
-        $this->id = $id;
+        return $this->order;
+    }
 
+    public function setOrder(?Order $order): static
+    {
+        $this->order = $order;
         return $this;
     }
 
-    public function getOrderId(): ?int
+    // Backward compatibility
+    public function getOrders(): ?Order
     {
-        return $this->order_id;
+        return $this->getOrder();
     }
 
-    public function setOrderId(int $order_id): static
+    public function setOrders(?Order $order): static
     {
-        $this->order_id = $order_id;
-
-        return $this;
+        return $this->setOrder($order);
     }
 
-    public function getProductId(): ?int
+    public function getProduct(): ?Product
     {
-        return $this->product_id;
+        return $this->product;
     }
 
-    public function setProductId(int $product_id): static
+    public function setProduct(?Product $product): static
     {
-        $this->product_id = $product_id;
-
-        return $this;
-    }
-
-    public function getPrice(): ?float
-    {
-        return $this->price;
-    }
-
-    public function setPrice(float $price): static
-    {
-        $this->price = $price;
-
+        $this->product = $product;
         return $this;
     }
 
@@ -87,31 +73,17 @@ class OrderItem
     public function setQuantity(int $quantity): static
     {
         $this->quantity = $quantity;
-
         return $this;
     }
 
-    public function getOrders(): ?Order
+    public function getPrice(): ?float
     {
-        return $this->orders;
+        return $this->price;
     }
 
-    public function setOrders(?Order $orders): static
+    public function setPrice(float $price): static
     {
-        $this->orders = $orders;
-
-        return $this;
-    }
-
-    public function getProduct(): ?Product
-    {
-        return $this->product;
-    }
-
-    public function setProduct(?Product $product): static
-    {
-        $this->product = $product;
-
+        $this->price = $price;
         return $this;
     }
 }

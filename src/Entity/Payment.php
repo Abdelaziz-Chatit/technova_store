@@ -13,51 +13,63 @@ class Payment
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column]
-    private ?int $order_id = null;
+    #[ORM\OneToOne(inversedBy: 'payment')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Order $order = null;
 
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $stripe_session_id = null;
+    #[ORM\Column(length: 50)]
+    private ?string $method = null;
 
     #[ORM\Column(length: 50)]
     private ?string $status = null;
 
-    #[ORM\OneToOne(inversedBy: 'payment', cascade: ['persist', 'remove'])]
-    private ?Order $orders = null;
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $transactionId = null;
+
+    #[ORM\Column]
+    private ?\DateTimeImmutable $createdAt = null;
+
+    public function __construct()
+    {
+        $this->createdAt = new \DateTimeImmutable();
+    }
 
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function setId(int $id): static
+    public function getOrder(): ?Order
     {
-        $this->id = $id;
+        return $this->order;
+    }
 
+    public function setOrder(Order $order): static
+    {
+        $this->order = $order;
         return $this;
     }
 
-    public function getOrderId(): ?int
+    // Backward compatibility
+    public function getOrders(): ?Order
     {
-        return $this->order_id;
+        return $this->getOrder();
     }
 
-    public function setOrderId(int $order_id): static
+    public function setOrders(?Order $order): static
     {
-        $this->order_id = $order_id;
-
+        $this->order = $order;
         return $this;
     }
 
-    public function getStripeSessionId(): ?string
+    public function getMethod(): ?string
     {
-        return $this->stripe_session_id;
+        return $this->method;
     }
 
-    public function setStripeSessionId(?string $stripe_session_id): static
+    public function setMethod(string $method): static
     {
-        $this->stripe_session_id = $stripe_session_id;
-
+        $this->method = $method;
         return $this;
     }
 
@@ -69,19 +81,28 @@ class Payment
     public function setStatus(string $status): static
     {
         $this->status = $status;
-
         return $this;
     }
 
-    public function getOrders(): ?Order
+    public function getTransactionId(): ?string
     {
-        return $this->orders;
+        return $this->transactionId;
     }
 
-    public function setOrders(?Order $orders): static
+    public function setTransactionId(?string $transactionId): static
     {
-        $this->orders = $orders;
+        $this->transactionId = $transactionId;
+        return $this;
+    }
 
+    public function getCreatedAt(): ?\DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(\DateTimeImmutable $createdAt): static
+    {
+        $this->createdAt = $createdAt;
         return $this;
     }
 }

@@ -1,0 +1,27 @@
+<div style="border: 1px solid #ddd; border-radius: 8px; padding: 1.5rem; background: #f8f9fa; position: sticky; top: 1rem;">
+    <h3 style="margin-top: 0;">Order Summary</h3>
+    
+    <div style="border-bottom: 1px solid #ddd; padding-bottom: 1rem; margin-bottom: 1rem;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+            <span>Subtotal:</span>
+            <span>${{ total|number_format(2) }}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; color: #7f8c8d; font-size: 0.9rem;">
+            <span>Shipping:</span>
+            <span>Calculated at checkout</span>
+        </div>
+    </div>
+    
+    <div style="display: flex; justify-content: space-between; font-size: 1.2rem; font-weight: bold; margin-bottom: 1.5rem;">
+        <span>Total:</span>
+        <span style="color: #27ae60;">${{ total|number_format(2) }}</span>
+    </div>
+    
+    <a href="{{ path('app_checkout_index') }}" class="btn btn-success" style="width: 100%; text-align: center; display: block; padding: 1rem; font-size: 1.1rem;">
+    Proceed to Checkout
+    </a>
+    
+    <a href="{{ path('app_product_catalog') }}" style="display: block; text-align: center; margin-top: 1rem; color: #3498db; text-decoration: none;">
+        ← Continue Shopping
+    </a>
+</div>
