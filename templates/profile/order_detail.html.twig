@@ -1,0 +1,128 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Order #{{ order.id }} - {{ parent() }}{% endblock %}
+
+{% block body %}
+<div style="max-width: 1000px; margin: 2rem auto;">
+    <h1 style="margin-bottom: 2rem; color: #2c3e50;">Order #{{ order.id }}</h1>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+        <!-- Order Information -->
+        <div style="background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+            <h2 style="margin-bottom: 1.5rem; color: #34495e;">Order Information</h2>
+            
+            <div style="display: grid; grid-template-columns: 120px 1fr; gap: 1rem; margin-bottom: 1rem;">
+                <strong>Order #:</strong>
+                <span>#{{ order.id }}</span>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 120px 1fr; gap: 1rem; margin-bottom: 1rem;">
+                <strong>Date:</strong>
+                <span>{{ order.createdAt|date('F d, Y H:i') }}</span>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 120px 1fr; gap: 1rem; margin-bottom: 1rem;">
+                <strong>Status:</strong>
+                <span>
+                    <span style="padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.9rem; 
+                        {% if order.status == 'paid' %}background: #d4edda; color: #155724;
+                        {% elseif order.status == 'pending' %}background: #fff3cd; color: #856404;
+                        {% elseif order.status == 'cancelled' %}background: #f8d7da; color: #721c24;
+                        {% else %}background: #e2e3e5; color: #383d41;{% endif %}">
+                        {{ order.status|upper }}
+                    </span>
+                </span>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 120px 1fr; gap: 1rem; margin-bottom: 1rem;">
+                <strong>Total:</strong>
+                <span style="font-weight: bold; font-size: 1.2rem; color: #27ae60;">${{ order.totalAmount|number_format(2) }}</span>
+            </div>
+        </div>
+
+        <!-- Customer Information -->
+        <div style="background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+            <h2 style="margin-bottom: 1.5rem; color: #34495e;">Customer Information</h2>
+            
+            <div style="display: grid; grid-template-columns: 120px 1fr; gap: 1rem; margin-bottom: 1rem;">
+                <strong>Name:</strong>
+                <span>{{ order.customerName }}</span>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 120px 1fr; gap: 1rem; margin-bottom: 1rem;">
+                <strong>Email:</strong>
+                <span>{{ order.customerEmail }}</span>
+            </div>
+            
+            {% if order.customerPhone %}
+            <div style="display: grid; grid-template-columns: 120px 1fr; gap: 1rem; margin-bottom: 1rem;">
+                <strong>Phone:</strong>
+                <span>{{ order.customerPhone }}</span>
+            </div>
+            {% endif %}
+            
+            <div style="display: grid; grid-template-columns: 120px 1fr; gap: 1rem; margin-bottom: 1rem;">
+                <strong>Address:</strong>
+                <span style="white-space: pre-line;">{{ order.shippingAddress }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Items -->
+    <div style="background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+        <h2 style="margin-bottom: 1.5rem; color: #34495e;">Order Items</h2>
+        
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="border-bottom: 2px solid #ddd;">
+                    <th style="padding: 1rem; text-align: left;">Product</th>
+                    <th style="padding: 1rem; text-align: center;">Quantity</th>
+                    <th style="padding: 1rem; text-align: right;">Price</th>
+                    <th style="padding: 1rem; text-align: right;">Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in order.items %}
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 1rem;">
+                            <strong>{{ item.product.name }}</strong>
+                        </td>
+                        <td style="padding: 1rem; text-align: center;">{{ item.quantity }}</td>
+                        <td style="padding: 1rem; text-align: right;">${{ item.price|number_format(2) }}</td>
+                        <td style="padding: 1rem; text-align: right; font-weight: bold;">${{ (item.quantity * item.price)|number_format(2) }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="3" style="padding: 1rem; text-align: right; font-weight: bold; font-size: 1.1rem;">Total:</td>
+                    <td style="padding: 1rem; text-align: right; font-weight: bold; font-size: 1.2rem; color: #27ae60;">${{ order.totalAmount|number_format(2) }}</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    <!-- Payment Information -->
+    {% if order.payment %}
+    <div style="background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-top: 2rem;">
+        <h2 style="margin-bottom: 1.5rem; color: #34495e;">Payment Information</h2>
+        
+        <div style="display: grid; grid-template-columns: 150px 1fr; gap: 1rem;">
+            <strong>Payment ID:</strong>
+            <span>{{ order.payment.stripePaymentId }}</span>
+            
+            <strong>Status:</strong>
+            <span>{{ order.payment.status|upper }}</span>
+            
+            <strong>Amount:</strong>
+            <span>${{ order.payment.amount|number_format(2) }}</span>
+        </div>
+    </div>
+    {% endif %}
+
+    <div style="margin-top: 2rem;">
+        <a href="{{ path('app_order_history') }}" class="btn" style="background: #95a5a6;">Back to Order History</a>
+    </div>
+</div>
+{% endblock %}
+

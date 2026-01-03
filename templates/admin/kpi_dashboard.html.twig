@@ -1,0 +1,295 @@
+{% extends 'admin/layout.html.twig' %}
+
+{% block title %}KPI Dashboard - Admin{% endblock %}
+{% block page_title %}KPI Dashboard{% endblock %}
+
+{% block body %}
+<style>
+    .dashboard-header {
+        margin-bottom: 2rem;
+    }
+
+    .dashboard-header h2 {
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+    }
+
+    .dashboard-header p {
+        color: #7f8c8d;
+        font-size: 0.95rem;
+    }
+</style>
+
+<div class="dashboard-header">
+    <h2>Sales Analytics</h2>
+    <p>Track your store's performance with real-time data</p>
+</div>
+
+<!-- KPI Cards -->
+<div class="grid-4">
+    <div class="kpi-card">
+        <div class="kpi-label">💰 Total Revenue</div>
+        <div class="kpi-value" style="color: #27ae60;">${{ totalRevenue|number_format(2, '.', ',') }}</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-label">📦 Total Orders</div>
+        <div class="kpi-value" style="color: #3498db;">{{ totalOrders }}</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-label">📊 Avg Order Value</div>
+        <div class="kpi-value" style="color: #e67e22;">${{ averageOrderValue|number_format(2, '.', ',') }}</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-label">✅ Status</div>
+        <div class="kpi-value" style="color: #9b59b6; font-size: 1.5rem;">🟢 Active</div>
+    </div>
+</div>
+
+<!-- Charts Row 1 -->
+<div class="grid-2">
+    <!-- Revenue Chart -->
+    <div class="chart-container">
+        <div class="chart-title">💹 Revenue Trend (Last 30 Days)</div>
+        <canvas id="revenueChart" style="max-height: 300px;"></canvas>
+    </div>
+
+    <!-- Orders Chart -->
+    <div class="chart-container">
+        <div class="chart-title">📈 Daily Orders (Last 30 Days)</div>
+        <canvas id="ordersChart" style="max-height: 300px;"></canvas>
+    </div>
+</div>
+
+<!-- Charts Row 2 -->
+<div class="grid-2">
+    <!-- Top Products Chart -->
+    <div class="chart-container">
+        <div class="chart-title">🏆 Top 5 Products by Revenue</div>
+        <canvas id="topProductsChart" style="max-height: 300px;"></canvas>
+    </div>
+
+    <!-- Status Breakdown Chart -->
+    <div class="chart-container">
+        <div class="chart-title">📋 Order Status Distribution</div>
+        <canvas id="statusChart" style="max-height: 300px;"></canvas>
+    </div>
+</div>
+
+<!-- Recent Orders Table -->
+<div class="chart-container">
+    <div class="chart-title">🕐 Recent Orders</div>
+    {% if recentOrders is not empty %}
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>Customer</th>
+                <th>Date</th>
+                <th>Amount</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in recentOrders %}
+            <tr>
+                <td><strong>#{{ order.id }}</strong></td>
+                <td>{{ order.user ? order.user.email : 'Guest' }}</td>
+                <td>{{ order.createdAt|date('M d, Y H:i') }}</td>
+                <td><strong>${{ order.totalAmount|number_format(2, '.', ',') }}</strong></td>
+                <td>
+                    <span class="status-badge status-{{ order.status|lower }}">
+                        {{ order.status|upper }}
+                    </span>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+        <p>No orders found yet</p>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    // Wait for Chart.js to be loaded and DOM to be ready
+    function initializeCharts() {
+        // Prepare data
+        const revenueData = {{ revenueData|json_encode|raw }};
+        const ordersData = {{ ordersData|json_encode|raw }};
+        const topProductsData = {{ topProducts|json_encode|raw }};
+        const statusData = {{ statusBreakdown|json_encode|raw }};
+
+        // Revenue Chart (Line)
+        if (revenueData.length > 0) {
+            const revenueCtx = document.getElementById('revenueChart');
+            if (revenueCtx && typeof Chart !== 'undefined') {
+                new Chart(revenueCtx.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: revenueData.map(d => d.date),
+                        datasets: [{
+                            label: 'Revenue ($)',
+                            data: revenueData.map(d => d.revenue),
+                            borderColor: 'rgb(39, 174, 96)',
+                            backgroundColor: 'rgba(39, 174, 96, 0.1)',
+                            tension: 0.4,
+                            fill: true,
+                            pointRadius: 4,
+                            pointBackgroundColor: 'rgb(39, 174, 96)',
+                            pointHoverRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: { display: true }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return '$' + value.toFixed(0);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // Orders Chart (Bar)
+        if (ordersData.length > 0) {
+            const ordersCtx = document.getElementById('ordersChart');
+            if (ordersCtx && typeof Chart !== 'undefined') {
+                new Chart(ordersCtx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: ordersData.map(d => d.date),
+                        datasets: [{
+                            label: 'Orders',
+                            data: ordersData.map(d => d.count),
+                            backgroundColor: 'rgba(52, 152, 219, 0.8)',
+                            borderColor: 'rgb(52, 152, 219)',
+                            borderWidth: 1,
+                            borderRadius: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: { display: true }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: { stepSize: 1 }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // Top Products Chart (Horizontal Bar)
+        if (topProductsData.length > 0) {
+            const topProductsCtx = document.getElementById('topProductsChart');
+            if (topProductsCtx && typeof Chart !== 'undefined') {
+                new Chart(topProductsCtx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: topProductsData.map(p => p.name.substring(0, 20)),
+                        datasets: [{
+                            label: 'Revenue ($)',
+                            data: topProductsData.map(p => parseFloat(p.revenue)),
+                            backgroundColor: 'rgba(230, 126, 34, 0.8)',
+                            borderColor: 'rgb(230, 126, 34)',
+                            borderWidth: 1,
+                            borderRadius: 4
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: { display: true }
+                        },
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return '$' + value.toFixed(0);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // Status Breakdown Chart (Doughnut)
+        if (Object.keys(statusData).length > 0) {
+            const statusCtx = document.getElementById('statusChart');
+            if (statusCtx && typeof Chart !== 'undefined') {
+                const statusLabels = Object.keys(statusData);
+                const statusValues = Object.values(statusData);
+                const statusColors = [
+                    'rgba(52, 152, 219, 0.8)',   // pending - blue
+                    'rgba(39, 174, 96, 0.8)',    // paid - green
+                    'rgba(241, 196, 15, 0.8)',   // shipped - yellow
+                    'rgba(155, 89, 182, 0.8)',   // delivered - purple
+                    'rgba(231, 76, 60, 0.8)'     // cancelled - red
+                ];
+
+                new Chart(statusCtx.getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: statusLabels.map(s => s.charAt(0).toUpperCase() + s.slice(1)),
+                        datasets: [{
+                            data: statusValues,
+                            backgroundColor: statusColors.slice(0, statusLabels.length),
+                            borderWidth: 2,
+                            borderColor: '#fff'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+            }
+        }
+    }
+
+    // Initialize charts when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeCharts);
+    } else {
+        initializeCharts();
+    }
+
+    // Also wait for Chart.js to be loaded
+    function waitForChart() {
+        if (typeof Chart !== 'undefined') {
+            initializeCharts();
+        } else {
+            setTimeout(waitForChart, 100);
+        }
+    }
+    setTimeout(waitForChart, 100);
+</script>
+{% endblock %}
+

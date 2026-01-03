@@ -1,20 +1,559 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Hello HomeController!{% endblock %}
+{% block title %}TechNova Store - Premium Tech Products{% endblock %}
 
 {% block body %}
 <style>
-    .example-wrapper { margin: 1em auto; max-width: 800px; width: 95%; font: 18px/1.5 sans-serif; }
-    .example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
+    /* Advertisement Carousel Styles */
+    .carousel-container {
+        position: relative;
+        width: 100%;
+        height: 400px;
+        margin-bottom: 3rem;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .carousel {
+        position: relative;
+        width: 100%;
+        height: 100%;
+    }
+
+    .carousel-slide {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        transition: opacity 0.6s ease-in-out;
+        cursor: pointer;
+    }
+
+    .carousel-slide.active {
+        opacity: 1;
+    }
+
+    .carousel-slide img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .carousel-slide-content {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+        color: white;
+        padding: 2rem;
+        text-align: left;
+    }
+
+    .carousel-slide-title {
+        font-size: 1.8rem;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+    }
+
+    .carousel-slide-desc {
+        font-size: 1rem;
+        margin-bottom: 1rem;
+        opacity: 0.95;
+    }
+
+    .carousel-controls {
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+        display: flex;
+        gap: 10px;
+        z-index: 10;
+    }
+
+    .carousel-btn {
+        width: 40px;
+        height: 40px;
+        border: none;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.8);
+        color: #2c3e50;
+        font-size: 1.2rem;
+        cursor: pointer;
+        transition: background 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .carousel-btn:hover {
+        background: rgba(255, 255, 255, 1);
+    }
+
+    .carousel-dots {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 10px;
+        z-index: 10;
+    }
+
+    .carousel-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.6);
+        cursor: pointer;
+        transition: background 0.3s;
+        border: none;
+    }
+
+    .carousel-dot.active {
+        background: white;
+    }
+
+    .carousel-dot:hover {
+        background: rgba(255, 255, 255, 0.9);
+    }
+
+    .hero {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 4rem 2rem;
+        border-radius: 12px;
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+
+    .hero h1 {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .hero p {
+        font-size: 1.1rem;
+        margin-bottom: 2rem;
+        opacity: 0.95;
+    }
+
+    .search-container {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-bottom: 2rem;
+        max-width: 500px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .search-input {
+        flex: 1;
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 6px;
+        font-size: 1rem;
+    }
+
+    .search-btn {
+        padding: 0.75rem 2rem;
+        background: #3498db;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.3s;
+    }
+
+    .search-btn:hover {
+        background: #2980b9;
+    }
+
+    .featured-section {
+        margin-bottom: 3rem;
+    }
+
+    .featured-title {
+        font-size: 2rem;
+        color: #2c3e50;
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+
+    .product-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .product-actions .btn {
+        flex: 1;
+        padding: 0.7rem 1rem;
+        font-size: 0.9rem;
+    }
+
+    .product-actions .btn-add-cart {
+        background: #27ae60;
+        color: white;
+        text-decoration: none;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background 0.3s;
+        padding: 0.7rem 1rem;
+        font-size: 0.9rem;
+        font-weight: 600;
+        text-align: center;
+    }
+
+    .product-actions .btn-add-cart:hover {
+        background: #229954;
+    }
+
+    .product-actions .btn {
+        background: #3498db;
+        color: white;
+        text-decoration: none;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background 0.3s;
+    }
+
+    .product-actions .btn:hover {
+        background: #2980b9;
+    }
+
+    .cta-section {
+        background: #ecf0f1;
+        padding: 2rem;
+        border-radius: 8px;
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .cta-section h2 {
+        color: #2c3e50;
+        margin-bottom: 1rem;
+    }
+
+    .cta-section p {
+        color: #7f8c8d;
+        margin-bottom: 1.5rem;
+    }
+
+    .stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 2rem;
+        margin: 2rem 0;
+        text-align: center;
+    }
+
+    .stat {
+        padding: 1.5rem;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #3498db;
+    }
+
+    .stat-label {
+        color: #7f8c8d;
+        margin-top: 0.5rem;
+    }
+
+    /* Category Cards Styling */
+    .categories-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 2rem;
+        margin: 2rem 0;
+    }
+
+    .category-card {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        cursor: pointer;
+    }
+
+    .category-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    }
+
+    .category-card img {
+        width: 100%;
+        height: 250px;
+        object-fit: cover;
+        display: block;
+    }
+
+    .category-card-body {
+        padding: 1.5rem;
+    }
+
+    .category-card-body h3 {
+        font-size: 1.3rem;
+        margin-bottom: 0.5rem;
+        color: #2c3e50;
+    }
+
+    .category-card-body p {
+        color: #7f8c8d;
+        margin-bottom: 1rem;
+        font-size: 0.95rem;
+        line-height: 1.5;
+    }
+
+    .btn-category {
+        display: inline-block;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        text-align: center;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .btn-category:hover {
+        transform: scale(1.02);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    @media (max-width: 768px) {
+        .carousel-container {
+            height: 250px;
+        }
+
+        .hero h1 {
+            font-size: 1.8rem;
+        }
+
+        .search-container {
+            flex-direction: column;
+        }
+
+        .stats {
+            grid-template-columns: 1fr;
+        }
+
+        .carousel-slide-title {
+            font-size: 1.2rem;
+        }
+
+        .carousel-slide-desc {
+            font-size: 0.9rem;
+        }
+
+        .categories-grid {
+            grid-template-columns: 1fr;
+        }
+    }
 </style>
 
-<div class="example-wrapper">
-    <h1>Hello {{ controller_name }}! ✅</h1>
+<!-- Advertisement Carousel -->
+{% if advertisements|length > 0 %}
+<div class="carousel-container">
+    <div class="carousel" id="mainCarousel">
+        {% for ad in advertisements %}
+        <div class="carousel-slide {% if loop.first %}active{% endif %}" data-index="{{ loop.index0 }}">
+            {% if ad.link %}
+                {# Whole slide clickable; open external links in new tab #}
+                {% set _target = ad.link|slice(0,4) == 'http' ? '_blank' : '_self' %}
+                <a href="{{ ad.link }}" class="carousel-link" target="{{ _target }}" rel="noopener noreferrer">
+            {% endif %}
 
-    This friendly message is coming from:
-    <ul>
-        <li>Your controller at <code>C:/Users/azuz/Desktop/techNova store/technova_store/src/Controller/HomeController.php</code></li>
-        <li>Your template at <code>C:/Users/azuz/Desktop/techNova store/technova_store/templates/home/index.html.twig</code></li>
-    </ul>
+            {% if ad.image %}
+                <img src="{{ asset('uploads/advertisements/' ~ ad.image) }}" alt="{{ ad.title }}" 
+                    onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22400%22%3E%3Crect fill=%22%23ecf0f1%22 width=%22800%22 height=%22400%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 font-size=%2230%22 fill=%22%23bdc3c7%22 text-anchor=%22middle%22 dy=%22.3em%22%3E{{ ad.title }}%3C/text%3E%3C/svg%3E'">
+            {% else %}
+                <img src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22400%22%3E%3Crect fill=%22%23ecf0f1%22 width=%22800%22 height=%22400%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 font-size=%2230%22 fill=%22%23bdc3c7%22 text-anchor=%22middle%22 dy=%22.3em%22%3E{{ ad.title }}%3C/text%3E%3C/svg%3E" alt="{{ ad.title }}">
+            {% endif %}
+
+            {% if ad.description or ad.link %}
+            <div class="carousel-slide-content">
+                <div class="carousel-slide-title">{{ ad.title }}</div>
+                {% if ad.description %}
+                <div class="carousel-slide-desc">{{ ad.description }}</div>
+                {% endif %}
+                {% if ad.link %}
+                <span class="btn" style="display: inline-block; margin-top: 0.5rem;">Learn More →</span>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            {% if ad.link %}
+                </a>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Carousel Controls -->
+    <div class="carousel-controls">
+        <button class="carousel-btn" id="prevBtn">❮</button>
+        <button class="carousel-btn" id="nextBtn">❯</button>
+    </div>
+
+    <!-- Carousel Dots -->
+    {% if advertisements|length > 1 %}
+    <div class="carousel-dots" id="dotsContainer">
+        {% for ad in advertisements %}
+        <button class="carousel-dot {% if loop.first %}active{% endif %}" data-index="{{ loop.index0 }}"></button>
+        {% endfor %}
+    </div>
+    {% endif %}
 </div>
+
+<script>
+    const carousel = document.getElementById('mainCarousel');
+    const slides = document.querySelectorAll('.carousel-slide');
+    const dots = document.querySelectorAll('.carousel-dot');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    let currentIndex = 0;
+    let autoplayTimer;
+
+    function showSlide(index) {
+        if (index >= slides.length) {
+            currentIndex = 0;
+        } else if (index < 0) {
+            currentIndex = slides.length - 1;
+        } else {
+            currentIndex = index;
+        }
+
+        slides.forEach(slide => slide.classList.remove('active'));
+        slides[currentIndex].classList.add('active');
+
+        dots.forEach(dot => dot.classList.remove('active'));
+        dots[currentIndex]?.classList.add('active');
+    }
+
+    function nextSlide() {
+        showSlide(currentIndex + 1);
+        resetAutoplay();
+    }
+
+    function prevSlide() {
+        showSlide(currentIndex - 1);
+        resetAutoplay();
+    }
+
+    function resetAutoplay() {
+        clearInterval(autoplayTimer);
+        autoplayTimer = setInterval(nextSlide, 5000);
+    }
+
+    // Event listeners
+    prevBtn.addEventListener('click', prevSlide);
+    nextBtn.addEventListener('click', nextSlide);
+
+    dots.forEach(dot => {
+        dot.addEventListener('click', (e) => {
+            showSlide(parseInt(e.target.dataset.index));
+            resetAutoplay();
+        });
+    });
+
+    // Autoplay
+    autoplayTimer = setInterval(nextSlide, 5000);
+
+    // Pause on hover
+    carousel.addEventListener('mouseenter', () => clearInterval(autoplayTimer));
+    carousel.addEventListener('mouseleave', resetAutoplay);
+</script>
+{% endif %}
+
+<!-- Hero Section -->
+<div class="hero">
+    <h1>🚀 Welcome to TechNova Store</h1>
+    <p>Your premium destination for cutting-edge technology products</p>
+    
+    <!-- Search Bar -->
+    <form method="GET" action="{{ path('app_product_catalog') }}" class="search-container">
+        <input 
+            type="text" 
+            name="search" 
+            class="search-input" 
+            placeholder="Search products by name or keyword..."
+            required
+        >
+        <button type="submit" class="search-btn">🔍 Search</button>
+    </form>
+</div>
+
+<!-- Featured Collections -->
+<div class="featured-section">
+    <h2 class="featured-title">📂 Shop by Category</h2>
+    
+    <!-- Categories Grid -->
+    <div class="categories-grid">
+        {% for category in categories %}
+        <div class="category-card">
+            {# Use uploaded category image if exists, otherwise render placeholder #}
+            {% if category.image %}
+                <img src="{{ asset('uploads/categories/' ~ category.image) }}" alt="{{ category.name }}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22250%22 height=%22250%22%3E%3Crect fill=%234a90e2%22 width=%22250%22 height=%22250%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 font-size=%2230%22 fill=%22white%22 text-anchor=%22middle%22 dy=%22.3em%22 font-weight=%22bold%22%3E{{ category.name|slice(0,1)|upper }}%3C/text%3E%3C/svg%3E'">
+            {% else %}
+                <img src="data:image/svg+xml;utf8,{{ ('<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"250\" height=\"250\"><rect fill=\"#4a90e2\" width=\"250\" height=\"250\"/><text x=\"50%\" y=\"50%\" font-size=\"30\" fill=\"white\" text-anchor=\"middle\" dy=\".3em\" font-weight=\"bold\">' ~ (category.name|slice(0,1)|upper) ~ '</text></svg>')|url_encode }}" alt="{{ category.name }}">
+            {% endif %}
+            <div class="category-card-body">
+                <h3>{{ category.name }}</h3>
+                <p>Browse our collection of {{ category.name|lower }}</p>
+                <a href="{{ path('app_product_catalog') }}?category={{ category.id }}" class="btn btn-category">View Products →</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- CTA Section -->
+<div class="cta-section">
+    <h2>💳 Ready to Shop?</h2>
+    <p>Browse our complete collection of tech products and save up to 30%</p>
+    <a href="{{ path('app_product_catalog') }}" class="btn btn-success">Start Shopping</a>
+</div>
+
+<!-- Stats -->
+<div class="stats">
+    <div class="stat">
+        <div class="stat-number">{{ totalProducts }}</div>
+        <div class="stat-label">Products Available</div>
+    </div>
+    <div class="stat">
+        <div class="stat-number">🚚</div>
+        <div class="stat-label">Free Shipping on Orders Over $50</div>
+    </div>
+    <div class="stat">
+        <div class="stat-number">⭐</div>
+        <div class="stat-label">4.9/5 Customer Rating</div>
+    </div>
+</div>
+
+<script>
+    // Form submission with validation
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const searchInput = this.querySelector('input[name="search"]');
+        if (!searchInput.value.trim()) {
+            e.preventDefault();
+            alert('Please enter a search term');
+        }
+    });
+</script>
 {% endblock %}

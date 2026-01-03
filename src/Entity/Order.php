@@ -229,4 +229,9 @@ class Order
         $this->totalAmount = (string) $total;
         return $this;
     }
+
+    public function __toString(): string
+    {
+        return sprintf('Order #%s - %s', $this->id ?? 'N/A', $this->customerName ?? '');
+    }
 }

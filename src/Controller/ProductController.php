@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Repository\CategoryRepository;
 use App\Repository\ProductRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
@@ -12,16 +13,34 @@ class ProductController extends AbstractController
 {
     #[Route('/products', name: 'app_product_catalog')]
     public function catalog(
+        Request $request,
         ProductRepository $productRepository,
         CategoryRepository $categoryRepository
     ): Response {
-        $products = $productRepository->findAll();
+        $search = $request->query->get('search', '');
+        $categoryId = $request->query->get('category', '');
+        
+        if ($search) {
+            // Search by name and description
+            $products = $productRepository->createQueryBuilder('p')
+                ->where('p.name LIKE :search OR p.description LIKE :search')
+                ->setParameter('search', '%' . $search . '%')
+                ->getQuery()
+                ->getResult();
+        } elseif ($categoryId) {
+            // Filter by category
+            $products = $productRepository->findBy(['category_id' => $categoryId]);
+        } else {
+            $products = $productRepository->findAll();
+        }
+        
         $categories = $categoryRepository->findAll();
 
         return $this->render('product/catalog.html.twig', [
             'products' => $products,
             'categories' => $categories,
             'selectedCategory' => null,
+            'search' => $search,
         ]);
     }
 

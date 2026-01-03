@@ -1,34 +1,170 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Products{% endblock %}
+{% block title %}Products - TechNova Store{% endblock %}
 
 {% block body %}
-    <h1>Our Products</h1>
+<style>
+    .catalog-header {
+        margin-bottom: 2rem;
+    }
 
-    {% if categories is not empty %}
-        <div class="category-filter">
-            <strong>Filter by category:</strong>
-            <a href="{{ path('app_product_catalog') }}" class="{{ selectedCategory is null ? 'active' : '' }}">
-                All
+    .catalog-header h1 {
+        color: #2c3e50;
+        margin-bottom: 1rem;
+        border-bottom: 3px solid #3498db;
+        padding-bottom: 0.5rem;
+        display: inline-block;
+    }
+
+    .filter-info {
+        color: #7f8c8d;
+        margin-bottom: 1rem;
+        font-size: 1rem;
+    }
+
+    .filter-info strong {
+        color: #3498db;
+    }
+
+    .clear-filter {
+        margin-left: 1rem;
+    }
+
+    .product-card {
+        cursor: pointer;
+        position: relative;
+    }
+
+    .product-card-clickable {
+        text-decoration: none;
+        color: inherit;
+        display: block;
+        flex: 1;
+    }
+
+    .product-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .product-actions form {
+        margin: 0;
+        flex: 1;
+        display: flex;
+        justify-content: center;
+    }
+
+    .product-actions .btn-add-cart {
+        background: #27ae60;
+        color: white;
+        text-decoration: none;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background 0.3s;
+        padding: 0.7rem 1.5rem;
+        font-size: 0.9rem;
+        font-weight: 600;
+        text-align: center;
+        flex: 1;
+    }
+
+    .product-actions .btn-add-cart:hover {
+        background: #229954;
+    }
+
+    .no-results {
+        text-align: center;
+        padding: 3rem 1rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+        margin: 2rem 0;
+    }
+
+    .no-results h2 {
+        color: #7f8c8d;
+        margin-bottom: 1rem;
+    }
+
+    .no-results p {
+        color: #95a5a6;
+        margin-bottom: 1.5rem;
+    }
+</style>
+
+<div class="catalog-header">
+    <h1>🛍️ Products</h1>
+</div>
+
+{% if search %}
+    <div class="filter-info">
+        🔍 Search results for: <strong>"{{ search }}"</strong>
+        <a href="{{ path('app_product_catalog') }}" class="clear-filter">Clear Search</a>
+    </div>
+{% elseif selectedCategory %}
+    <div class="filter-info">
+        📁 Showing products in: <strong>{{ selectedCategory.name }}</strong>
+        <a href="{{ path('app_product_catalog') }}" class="clear-filter">Show All</a>
+    </div>
+{% endif %}
+
+{% if categories is not empty %}
+    <div class="category-filter">
+        <a href="{{ path('app_product_catalog') }}" {% if not search and not selectedCategory %}class="active"{% endif %}>
+            🎯 All Products
+        </a>
+        {% for category in categories %}
+            <a href="{{ path('app_product_catalog', {category: category.id}) }}" 
+               {% if selectedCategory and selectedCategory.id == category.id %}class="active"{% endif %}>
+                {{ category.name }}
             </a>
-            {% for category in categories %}
-                <a href="{{ path('app_product_by_category', {slug: category.slug}) }}" 
-                   class="{{ selectedCategory and selectedCategory.id == category.id ? 'active' : '' }}">
-                    {{ category.name }}
-                </a>
-            {% endfor %}
-        </div>
-    {% endif %}
-
-    {% if selectedCategory %}
-        <p style="color: #7f8c8d;">Showing products in: <strong>{{ selectedCategory.name }}</strong></p>
-    {% endif %}
-
-    <div class="product-grid">
-        {% for product in products %}
-            {% include 'partials/_product_card.html.twig' with {'product': product} %}
-        {% else %}
-            <p>No products found.</p>
         {% endfor %}
     </div>
+{% endif %}
+
+{% if products is not empty %}
+    <div class="product-grid">
+        {% for product in products %}
+            <div class="product-card" onclick="if (!event.target.closest('form, button')) { window.location.href = '{{ path('app_product_show', {'id': product.id}) }}'; }">
+                {% if product.image %}
+                    <img src="{{ asset('uploads/products/' ~ product.image) }}" alt="{{ product.name }}" style="aspect-ratio: 1/1; object-fit: cover; width: 100%; border-radius: 8px;" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22250%22 height=%22250%22%3E%3Crect fill=%22%23ddd%22 width=%22250%22 height=%22250%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 font-size=%2220%22 fill=%22%23999%22 text-anchor=%22middle%22 dy=%22.3em%22%3ENo Image%3C/text%3E%3C/svg%3E'">
+                {% else %}
+                    <img src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22250%22 height=%22250%22%3E%3Crect fill=%22%23ecf0f1%22 width=%22250%22 height=%22250%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 font-size=%2220%22 fill=%22%23bdc3c7%22 text-anchor=%22middle%22 dy=%22.3em%22%3ENo Image%3C/text%3E%3C/svg%3E" alt="No image">
+                {% endif %}
+                <div class="product-card-body">
+                    <h3>{{ product.name }}</h3>
+                    <p>{{ product.description|slice(0, 80) }}{{ product.description|length > 80 ? '...' : '' }}</p>
+                    <div class="product-price">${{ product.price|number_format(2, '.', ',') }}</div>
+                    <div class="product-actions">
+                        <form method="POST" action="{{ path('app_cart_add', {'id': product.id}) }}" data-action="add-to-cart" data-product-id="{{ product.id }}" onclick="event.stopPropagation();">
+                            <input type="hidden" name="_token" value="{{ csrf_token('add_to_cart') }}">
+                            <input type="hidden" name="product_id" value="{{ product.id }}">
+                            <input type="hidden" name="quantity" value="1">
+                            <button type="submit" class="btn btn-add-cart">🛒 Add to Cart</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="no-results">
+        <h2>😞 No products found</h2>
+        <p>
+            {% if search %}
+                We couldn't find any products matching "<strong>{{ search }}</strong>"
+            {% elseif selectedCategory %}
+                No products available in this category
+            {% else %}
+                No products available at this time
+            {% endif %}
+        </p>
+        <a href="{{ path('app_product_catalog') }}" class="btn">🔄 Browse All Products</a>
+    </div>
+{% endif %}
+
+<script>
+    // Empty - cart.js handles all Add-to-Cart logic globally
+</script>
 {% endblock %}

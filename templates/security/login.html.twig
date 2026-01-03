@@ -1,0 +1,70 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Login - {{ parent() }}{% endblock %}
+
+{% block body %}
+<div style="max-width: 500px; margin: 3rem auto; padding: 2rem; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+    <h1 style="text-align: center; margin-bottom: 2rem; color: #2c3e50;">Sign In</h1>
+
+    {% if error %}
+        <div style="background: #fee; color: #c33; padding: 1rem; border-radius: 4px; margin-bottom: 1rem; border: 1px solid #fcc;">
+            {{ error.messageKey|trans(error.messageData, 'security') }}
+        </div>
+    {% endif %}
+
+    {% for message in app.flashes('success') %}
+        <div style="background: #efe; color: #3c3; padding: 1rem; border-radius: 4px; margin-bottom: 1rem; border: 1px solid #cfc;">
+            {{ message }}
+        </div>
+    {% endfor %}
+
+    <form method="post" action="{{ path('app_login') }}" style="display: flex; flex-direction: column; gap: 1rem;">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+        <div>
+            <label for="email" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Email</label>
+            <input 
+                type="email" 
+                id="email" 
+                name="_username" 
+                value="{{ last_username }}" 
+                required 
+                autofocus
+                style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem;"
+                placeholder="your@email.com"
+            >
+        </div>
+
+        <div>
+            <label for="password" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Password</label>
+            <input 
+                type="password" 
+                id="password" 
+                name="_password" 
+                required
+                style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem;"
+                placeholder="Enter your password"
+            >
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <input 
+                type="checkbox" 
+                id="remember_me" 
+                name="_remember_me" 
+                style="width: auto;"
+            >
+            <label for="remember_me" style="margin: 0;">Remember me</label>
+        </div>
+
+        <button type="submit" style="width: 100%; padding: 0.75rem; background: #3498db; color: white; border: none; border-radius: 4px; font-size: 1rem; cursor: pointer; margin-top: 1rem;">
+            Sign In
+        </button>
+    </form>
+
+    <div style="text-align: center; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #eee;">
+        <p style="color: #666;">Don't have an account? <a href="{{ path('app_register') }}" style="color: #3498db; text-decoration: none;">Register here</a></p>
+    </div>
+</div>
+{% endblock %}
+

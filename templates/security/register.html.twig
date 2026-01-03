@@ -1,0 +1,35 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Register - {{ parent() }}{% endblock %}
+
+{% block body %}
+<div style="max-width: 500px; margin: 3rem auto; padding: 2rem; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+    <h1 style="text-align: center; margin-bottom: 2rem; color: #2c3e50;">Create Account</h1>
+
+    {{ form_start(registrationForm, {'attr': {'style': 'display: flex; flex-direction: column; gap: 1rem;'}}) }}
+
+        {{ form_row(registrationForm.name, {'attr': {'style': 'width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem;'}}) }}
+        {{ form_row(registrationForm.email, {'attr': {'style': 'width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem;'}}) }}
+        {{ form_row(registrationForm.phone, {'attr': {'style': 'width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem;'}}) }}
+        {{ form_row(registrationForm.plainPassword.first, {'attr': {'style': 'width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem;'}}) }}
+        {{ form_row(registrationForm.plainPassword.second, {'attr': {'style': 'width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem;'}}) }}
+        {{ form_row(registrationForm.agreeTerms) }}
+
+        <button type="submit" style="width: 100%; padding: 0.75rem; background: #27ae60; color: white; border: none; border-radius: 4px; font-size: 1rem; cursor: pointer; margin-top: 1rem;">
+            Register
+        </button>
+
+    {{ form_end(registrationForm) }}
+
+    <div style="text-align: center; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #eee;">
+        <p style="color: #666;">Already have an account? <a href="{{ path('app_login') }}" style="color: #3498db; text-decoration: none;">Sign in here</a></p>
+    </div>
+</div>
+
+<style>
+    .form-group { margin-bottom: 1rem; }
+    .form-group label { display: block; margin-bottom: 0.5rem; font-weight: bold; }
+    .form-error { color: #c33; font-size: 0.9rem; margin-top: 0.25rem; }
+</style>
+{% endblock %}
+

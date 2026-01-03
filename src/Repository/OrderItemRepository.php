@@ -16,28 +16,23 @@ class OrderItemRepository extends ServiceEntityRepository
         parent::__construct($registry, OrderItem::class);
     }
 
-//    /**
-//     * @return OrderItem[] Returns an array of OrderItem objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('o')
-//            ->andWhere('o.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('o.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
+    /**
+     * Get top N products by revenue
+     */
+    public function getTopProductsByRevenue(int $limit = 5): array
+    {
+        $results = $this->createQueryBuilder('oi')
+            ->select('p.id, p.name, SUM(oi.price * oi.quantity) as revenue')
+            ->join('oi.product', 'p')
+            ->join('oi.order', 'o')
+            ->where('o.status = :status')
+            ->setParameter('status', 'paid')
+            ->groupBy('p.id', 'p.name')
+            ->orderBy('revenue', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
 
-//    public function findOneBySomeField($value): ?OrderItem
-//    {
-//        return $this->createQueryBuilder('o')
-//            ->andWhere('o.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+        return $results;
+    }
 }
