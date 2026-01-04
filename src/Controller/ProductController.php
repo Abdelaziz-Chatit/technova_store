@@ -19,28 +19,48 @@ class ProductController extends AbstractController
     ): Response {
         $search = $request->query->get('search', '');
         $categoryId = $request->query->get('category', '');
-        
+        $priceMinRaw = $request->query->get('price_min', '');
+        $priceMaxRaw = $request->query->get('price_max', '');
+        $priceMin = is_numeric($priceMinRaw) ? (float) $priceMinRaw : null;
+        $priceMax = is_numeric($priceMaxRaw) ? (float) $priceMaxRaw : null;
+        // Build query with optional filters: search, category, price range
+        $qb = $productRepository->createQueryBuilder('p');
+
         if ($search) {
-            // Search by name and description
-            $products = $productRepository->createQueryBuilder('p')
-                ->where('p.name LIKE :search OR p.description LIKE :search')
-                ->setParameter('search', '%' . $search . '%')
-                ->getQuery()
-                ->getResult();
-        } elseif ($categoryId) {
-            // Filter by category
-            $products = $productRepository->findBy(['category_id' => $categoryId]);
-        } else {
-            $products = $productRepository->findAll();
+            $qb->andWhere('p.name LIKE :search OR p.description LIKE :search')
+               ->setParameter('search', '%' . $search . '%');
         }
+
+        $selectedCategory = null;
+        if ($categoryId) {
+            $selectedCategory = $categoryRepository->find($categoryId);
+            if ($selectedCategory) {
+                $qb->andWhere('p.category = :category')
+                   ->setParameter('category', $selectedCategory);
+            }
+        }
+
+        if ($priceMin !== null) {
+            $qb->andWhere('p.price >= :priceMin')
+               ->setParameter('priceMin', $priceMin);
+        }
+
+        if ($priceMax !== null) {
+            $qb->andWhere('p.price <= :priceMax')
+               ->setParameter('priceMax', $priceMax);
+        }
+
+        $products = $qb->getQuery()->getResult();
         
         $categories = $categoryRepository->findAll();
 
         return $this->render('product/catalog.html.twig', [
             'products' => $products,
             'categories' => $categories,
-            'selectedCategory' => null,
+            'selectedCategory' => $selectedCategory,
             'search' => $search,
+            'price_min' => $priceMin,
+            'price_max' => $priceMax,
         ]);
     }
 
